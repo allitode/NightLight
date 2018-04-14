@@ -25,9 +25,9 @@ void loop() {
 	uint32_t t;
 
 	switch (mode) {
-	case 0: // rainbow hold
-		rainbowHold(20);
-		delay(500);
+	case 0: // off
+		blackout();
+		delay(8000);
 		break;
 
 	case 1: // rainbow cycle slow
@@ -39,12 +39,17 @@ void loop() {
 		rainbowCycle(5);
 		delay(50);
 		break;
+
+	case 3: // rainbow hold
+		rainbowHold(20);
+		delay(500);
+		break;
 	}
 
 	t = millis();
 	if ((t - prevTime) > 8000) {
 		mode++;
-		if (mode>3) {
+		if (mode>4) {
 			mode = 0;
 			color >>= 8;
 			if (!color) color = 0xB300A4;
@@ -52,6 +57,13 @@ void loop() {
 		for (i = 0; i<pixels.numPixels(); i++) pixels.setPixelColor(i, 0);
 		prevTime = t;
 	}
+}
+
+void blackout() {
+	for (int i = 0; i < pixels.numPixels(); i++) {
+		pixels.setPixelColor(i, 0);
+	}
+	pixels.show();
 }
 
 void rainbow(uint8_t wait) {
