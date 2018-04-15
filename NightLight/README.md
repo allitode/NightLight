@@ -5,12 +5,15 @@ A small NightLight application using the [Adafruit Trinket 5V](https://www.adafr
 and the [NeoPattern](https://learn.adafruit.com/multi-tasking-the-arduino-part-3?view=all) class.
 
 ##Animations
+
 ###TODO:
 * Fade out
 
 ### Completed:
 * ColorSwipe with background color (TwoColorSwipe())
 * Single Pixel Fade
+* Campfire
+* Added logic to step through animation sequences, by timer now, but hardware button later
 
 ### Hardware
 * Make a button advance the animations

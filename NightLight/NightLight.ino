@@ -392,6 +392,9 @@ public:
 
 void JewelComplete();
 void JewelPixelComplete();
+uint8_t mode = 0;
+bool modeChanged = false;
+uint32_t prevTime;
 
 // Define some NeoPatterns for the two rings and the stick
 //  as well as some completion routines
@@ -409,13 +412,48 @@ void setup()
 	// Kick off a pattern
 	//Jewel.Fade(0x330011, 0x880066, 20, 150, FORWARD);
 	//Jewel.TwoColorWipe(0x330011, 0x880066, 150, FORWARD);
+	PinkGlow();
+}
+
+void PinkGlow() 
+{
 	Jewel.SinglePixelFade(0x330011, 0x880066, 20, 75, FORWARD, FORWARD);
+}
+
+void Campfire() 
+{
+	Jewel.SinglePixelFade(0x880600, 0xff0000, 10, 50, FORWARD, FORWARD);
 }
 
 // Main loop
 void loop()
 {
+	uint32_t t;
+	if (modeChanged) {
+		switch (mode)
+		{
+		case 0: // PinkGlow
+			PinkGlow();
+			modeChanged = false;
+			break;
+		case 1: // CampFire
+			Campfire();
+			modeChanged = false;
+			break;
+
+		}
+	}
 	Jewel.Update();
+
+	t = millis();
+	if ((t - prevTime) > 8000) {
+		mode++;
+		modeChanged = true;
+		if (mode > 1) {
+			mode = 0;
+		}
+		prevTime = t;
+	}
 
 	//// Switch patterns on a button press:
 	//if (digitalRead(8) == LOW) // Button #1 pressed
