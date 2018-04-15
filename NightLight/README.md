@@ -12,6 +12,5 @@ and the [NeoPattern](https://learn.adafruit.com/multi-tasking-the-arduino-part-3
 
 ### Completed:
 
-
 ### Hardware
 * Make a button advance the animations
