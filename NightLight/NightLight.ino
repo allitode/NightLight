@@ -7,7 +7,7 @@
 #include <Adafruit_NeoPixel.h>
 #define PIN 0
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(7, PIN);
-uint8_t mode = 0,
+uint8_t mode = 4,
 offset = 0;
 uint32_t color = 0X00A4B3;
 uint32_t prevTime;
@@ -44,11 +44,16 @@ void loop() {
 		rainbowHold(20);
 		delay(500);
 		break;
+
+	case 4: // pink twinkle
+		pinkTwinkle(20);
+		delay(500);
+		break;
 	}
 
 	t = millis();
 	if ((t - prevTime) > 8000) {
-		mode++;
+		//mode++;
 		if (mode>4) {
 			mode = 0;
 			color >>= 8;
@@ -57,6 +62,62 @@ void loop() {
 		for (i = 0; i<pixels.numPixels(); i++) pixels.setPixelColor(i, 0);
 		prevTime = t;
 	}
+}
+
+void pinkTwinkle(uint8_t wait) {
+	uint16_t i, j;
+
+	for (i = 0; i<pixels.numPixels(); i++) {
+		//pixels.setPixelColor(i, 0x330011);
+		pixels.setPixelColor(i, 56, 0, 19);
+	}
+	pixels.show();
+	j = random(pixels.numPixels());
+	/*pixels.setPixelColor(j, 0x990C3F);
+	pixels.show();
+	delay(wait);*/
+
+	//fadePixel(j, 0x990C3F, 20, wait);
+	fadePixel(j, 153, 0, 63, 20, wait);
+}
+
+void fadePixel(uint16_t pixel, uint8_t r, uint8_t g, uint8_t b, uint8_t steps, uint8_t wait) {
+	int startColor = pixels.getPixelColor(pixel);
+	int stepColor = startColor;
+	int8_t stepR, stepG, stepB;
+
+	stepR = (r - Red(startColor)) / steps;
+	stepG = (g - Green(startColor)) / steps;
+	stepB = (b - Blue(startColor)) / steps;
+	
+	for (int step = 1; step < steps; step++) {
+		stepColor = pixels.Color((Red(startColor) + stepR * step), (Green(startColor) + stepG * step), (Blue(startColor) + stepB * step));
+		pixels.setPixelColor(pixel, stepColor);
+		pixels.show();
+		delay(wait);
+	}
+	// deal with rounding errors
+	pixels.setPixelColor(pixel, pixels.Color(r, g, b));
+	pixels.show();
+	delay(wait * steps);
+}
+
+// Returns the Red component of a 32-bit color
+uint8_t Red(uint32_t color)
+{
+	return (color >> 16) & 0xFF;
+}
+
+// Returns the Green component of a 32-bit color
+uint8_t Green(uint32_t color)
+{
+	return (color >> 8) & 0xFF;
+}
+
+// Returns the Blue component of a 32-bit color
+uint8_t Blue(uint32_t color)
+{
+	return color & 0xFF;
 }
 
 void blackout() {
