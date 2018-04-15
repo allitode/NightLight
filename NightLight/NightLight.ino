@@ -298,29 +298,19 @@ NeoPatterns Jewel(7, 0, NEO_GRB + NEO_KHZ800, &JewelComplete);
 // Initialize everything and prepare to start
 void setup()
 {
-	//pinMode(8, INPUT_PULLUP);
+	//pinMode(1, INPUT_PULLUP); // FUTURE BUTTON
 
 	// Initialize all the pixelStrips
 	Jewel.begin();
 	Jewel.setBrightness(128);
 
 	// Kick off a pattern
-	//Ring1.TheaterChase(Ring1.Color(255, 255, 0), Ring1.Color(0, 0, 50), 100);
-	//Ring2.RainbowCycle(3);
-	//Ring2.Color1 = Ring1.Color1;
-	//Stick.Scanner(Ring1.Color(255, 0, 0), 55);
 	Jewel.Fade(0x330011, 0x880066, 20, 150, FORWARD);
-	//Jewel.Scanner(0x330011, 500);
-	//Jewel.ColorSet(0x330011);
-	//Jewel.ColorWipe(0x990c3f, 50, FORWARD);
 }
 
 // Main loop
 void loop()
 {
-	// Update the rings.
-	//Ring1.Update();
-	//Ring2.Update();
 	Jewel.Update();
 
 	//// Switch patterns on a button press:
@@ -334,71 +324,11 @@ void loop()
 	//	// Set stick to all red
 	//	Stick.ColorSet(Stick.Color(255, 0, 0));
 	//}
-	//else if (digitalRead(9) == LOW) // Button #2 pressed
-	//{
-	//	// Switch to alternating color wipes on Rings1 and 2
-	//	Ring1.ActivePattern = COLOR_WIPE;
-	//	Ring2.ActivePattern = COLOR_WIPE;
-	//	Ring2.TotalSteps = Ring2.numPixels();
-	//	// And update tbe stick
-	//	Stick.Update();
-	//}
-	//else // Back to normal operation
-	//{
-	//	// Restore all pattern parameters to normal values
-	//	Ring1.ActivePattern = THEATER_CHASE;
-	//	Ring1.Interval = 100;
-	//	Ring2.ActivePattern = RAINBOW_CYCLE;
-	//	Ring2.TotalSteps = 255;
-	//	Ring2.Interval = min(10, Ring2.Interval);
-	//	// And update tbe stick
-	//	Stick.Update();
-	//}
 }
 
 //------------------------------------------------------------
 //Completion Routines - get called on completion of a pattern
 //------------------------------------------------------------
-
-// Ring1 Completion Callback
-//void Ring1Complete()
-//{
-//	if (digitalRead(9) == LOW)  // Button #2 pressed
-//	{
-//		// Alternate color-wipe patterns with Ring2
-//		Ring2.Interval = 40;
-//		Ring1.Color1 = Ring1.Wheel(random(255));
-//		Ring1.Interval = 20000;
-//	}
-//	else  // Retrn to normal
-//	{
-//		Ring1.Reverse();
-//	}
-//}
-
-// Ring 2 Completion Callback
-//void Ring2Complete()
-//{
-//	if (digitalRead(9) == LOW)  // Button #2 pressed
-//	{
-//		// Alternate color-wipe patterns with Ring1
-//		Ring1.Interval = 20;
-//		Ring2.Color1 = Ring2.Wheel(random(255));
-//		Ring2.Interval = 20000;
-//	}
-//	else  // Retrn to normal
-//	{
-//		Ring2.RainbowCycle(random(0, 10));
-//	}
-//}
-//
-//// Stick Completion Callback
-//void StickComplete()
-//{
-//	// Random color change for next scan
-//	Stick.Color1 = Stick.Wheel(random(255));
-//}
-
 void JewelComplete() {
 	Jewel.Reverse();
 }
