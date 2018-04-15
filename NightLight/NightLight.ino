@@ -1,7 +1,7 @@
 #include <Adafruit_NeoPixel.h>
 
 // Pattern types supported:
-enum  pattern { NONE, RAINBOW_CYCLE, THEATER_CHASE, COLOR_WIPE, SCANNER, FADE };
+enum  pattern { NONE, RAINBOW_CYCLE, THEATER_CHASE, COLOR_WIPE, TWO_COLOR_WIPE, SCANNER, FADE };
 // Patern directions supported:
 enum  direction { FORWARD, REVERSE };
 
@@ -52,6 +52,9 @@ public:
 				break;
 			case FADE:
 				FadeUpdate();
+				break;
+			case TWO_COLOR_WIPE:
+				TwoColorWipeUpdate();
 				break;
 			default:
 				break;
@@ -165,10 +168,30 @@ public:
 		Direction = dir;
 	}
 
+	// Initialize for a TwoColorWipe
+	void TwoColorWipe(uint32_t color1, uint32_t color2, uint8_t interval, direction dir = FORWARD) {
+		ActivePattern = TWO_COLOR_WIPE;
+		Interval = interval;
+		TotalSteps = numPixels();
+		Color1 = color1;
+		Color2 = color2;
+		Index = 0;
+		Direction = dir;
+	}
+
 	// Update the Color Wipe Pattern
 	void ColorWipeUpdate()
 	{
 		setPixelColor(Index, Color1);
+		show();
+		Increment();
+	}
+
+	// Update the Color Wipe Pattern
+	void TwoColorWipeUpdate()
+	{
+		ColorSet(Color1);
+		setPixelColor(Index, Color2);
 		show();
 		Increment();
 	}
@@ -305,7 +328,8 @@ void setup()
 	Jewel.setBrightness(128);
 
 	// Kick off a pattern
-	Jewel.Fade(0x330011, 0x880066, 20, 150, FORWARD);
+	//Jewel.Fade(0x330011, 0x880066, 20, 150, FORWARD);
+	Jewel.TwoColorWipe(0x330011, 0x880066, 150, FORWARD);
 }
 
 // Main loop

@@ -7,10 +7,10 @@ and the [NeoPattern](https://learn.adafruit.com/multi-tasking-the-arduino-part-3
 ##Animations
 ###TODO:
 * Single Pixel Fade
-* ColorSwipe with background color
 * Fade out
 
 ### Completed:
+* ColorSwipe with background color (TwoColorSwipe())
 
 ### Hardware
 * Make a button advance the animations
