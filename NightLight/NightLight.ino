@@ -1,7 +1,7 @@
 #include <Adafruit_NeoPixel.h>
 
 // Pattern types supported:
-enum  pattern { NONE, RAINBOW_CYCLE, THEATER_CHASE, COLOR_WIPE, TWO_COLOR_WIPE, SCANNER, FADE };
+enum  pattern { NONE, RAINBOW_CYCLE, THEATER_CHASE, COLOR_WIPE, TWO_COLOR_WIPE, SCANNER, FADE, SINGLE_PIXEL_FADE };
 // Patern directions supported:
 enum  direction { FORWARD, REVERSE };
 
@@ -11,23 +11,27 @@ class NeoPatterns : public Adafruit_NeoPixel
 public:
 
 	// Member Variables:  
-	pattern  ActivePattern;  // which pattern is running
-	direction Direction;     // direction to run the pattern
+	pattern  ActivePattern;		// which pattern is running
+	direction Direction;		// direction to run the pattern
+	direction PixelDirection;	// direction to increment pixels (used for cases where an Index and PixelIndex need to be used)
 
-	unsigned long Interval;   // milliseconds between updates
-	unsigned long lastUpdate; // last update of position
+	unsigned long Interval;		// milliseconds between updates
+	unsigned long lastUpdate;	// last update of position
 
-	uint32_t Color1, Color2;  // What colors are in use
-	uint16_t TotalSteps;  // total number of steps in the pattern
-	uint16_t Index;  // current step within the pattern
+	uint32_t Color1, Color2;	// What colors are in use
+	uint16_t TotalSteps;		// total number of steps in the pattern
+	uint16_t Index;				// current step within the pattern
+	uint16_t PixelIndex;		// current pixel within the pattern (used for cases where an Index and a PixelIndex need to be used)
 
-	void(*OnComplete)();  // Callback on completion of pattern
+	void(*OnComplete)();		// Callback on completion of pattern
+	void(*OnPixelComplete)();	// Callback on completion of Pixel pattern (used for cases where an Index and a PixelIndex need to be used)
 
-						  // Constructor - calls base-class constructor to initialize strip
-	NeoPatterns(uint16_t pixels, uint8_t pin, uint8_t type, void(*callback)())
+	// Constructor - calls base-class constructor to initialize strip
+	NeoPatterns(uint16_t pixels, uint8_t pin, uint8_t type, void(*callback)(), void(*pixelcallback)())
 		:Adafruit_NeoPixel(pixels, pin, type)
 	{
 		OnComplete = callback;
+		OnPixelComplete = pixelcallback;
 	}
 
 	// Update the pattern
@@ -55,6 +59,9 @@ public:
 				break;
 			case TWO_COLOR_WIPE:
 				TwoColorWipeUpdate();
+				break;
+			case SINGLE_PIXEL_FADE:
+				SinglePixelFadeUpdate();
 				break;
 			default:
 				break;
@@ -91,6 +98,34 @@ public:
 		}
 	}
 
+	void PixelIncrement() 
+	{
+		if (PixelDirection == FORWARD)
+		{
+			PixelIndex++;
+			if (PixelIndex >= numPixels())
+			{
+				PixelIndex = 0;
+				if (OnPixelComplete != NULL)
+				{
+					OnPixelComplete(); // call the comlpetion callback
+				}
+			}
+		}
+		else // Direction == REVERSE
+		{
+			--PixelIndex;
+			if (PixelIndex <= 0)
+			{
+				PixelIndex = numPixels() - 1;
+				if (OnPixelComplete != NULL)
+				{
+					OnPixelComplete(); // call the comlpetion callback
+				}
+			}
+		}
+	}
+
 	// Reverse pattern direction
 	void Reverse()
 	{
@@ -103,6 +138,20 @@ public:
 		{
 			Direction = FORWARD;
 			Index = 0;
+		}
+	}
+
+	//  Reverse the pixel direction
+	void PixelReverse() {
+		if (PixelDirection == FORWARD) 
+		{
+			PixelDirection = REVERSE;
+			PixelIndex = numPixels() - 1;
+		}
+		else 
+		{
+			PixelDirection = FORWARD;
+			PixelIndex = 0;
 		}
 	}
 
@@ -240,6 +289,20 @@ public:
 		Direction = dir;
 	}
 
+	// Initialize for a SinglePixelFade
+	void SinglePixelFade(uint32_t color1, uint32_t color2, uint16_t steps, uint8_t interval, direction dir = FORWARD, direction pixelDir = FORWARD)
+	{
+		ActivePattern = SINGLE_PIXEL_FADE;
+		Interval = interval;
+		TotalSteps = steps;
+		Color1 = color1;
+		Color2 = color2;
+		Index = 0;
+		PixelIndex = 0;
+		Direction = dir;
+		PixelDirection = pixelDir;
+	}
+
 	// Update the Fade Pattern
 	void FadeUpdate()
 	{
@@ -250,6 +313,21 @@ public:
 		uint8_t blue = ((Blue(Color1) * (TotalSteps - Index)) + (Blue(Color2) * Index)) / TotalSteps;
 
 		ColorSet(Color(red, green, blue));
+		show();
+		Increment();
+	}
+
+	// update the SinglePixelFade Pattern
+	void SinglePixelFadeUpdate() {
+		ColorSet(Color1);
+		
+		// Calculate linear interpolation between Color1 and Color2
+		// Optimise order of operations to minimize truncation error
+		uint8_t red = ((Red(Color1) * (TotalSteps - Index)) + (Red(Color2) * Index)) / TotalSteps;
+		uint8_t green = ((Green(Color1) * (TotalSteps - Index)) + (Green(Color2) * Index)) / TotalSteps;
+		uint8_t blue = ((Blue(Color1) * (TotalSteps - Index)) + (Blue(Color2) * Index)) / TotalSteps;
+
+		setPixelColor(PixelIndex, red, green, blue);
 		show();
 		Increment();
 	}
@@ -313,10 +391,11 @@ public:
 };
 
 void JewelComplete();
+void JewelPixelComplete();
 
 // Define some NeoPatterns for the two rings and the stick
 //  as well as some completion routines
-NeoPatterns Jewel(7, 0, NEO_GRB + NEO_KHZ800, &JewelComplete);
+NeoPatterns Jewel(7, 0, NEO_GRB + NEO_KHZ800, &JewelComplete, &JewelPixelComplete);
 
 // Initialize everything and prepare to start
 void setup()
@@ -329,7 +408,8 @@ void setup()
 
 	// Kick off a pattern
 	//Jewel.Fade(0x330011, 0x880066, 20, 150, FORWARD);
-	Jewel.TwoColorWipe(0x330011, 0x880066, 150, FORWARD);
+	//Jewel.TwoColorWipe(0x330011, 0x880066, 150, FORWARD);
+	Jewel.SinglePixelFade(0x330011, 0x880066, 20, 75, FORWARD, FORWARD);
 }
 
 // Main loop
@@ -355,4 +435,14 @@ void loop()
 //------------------------------------------------------------
 void JewelComplete() {
 	Jewel.Reverse();
+	if (Jewel.Direction == FORWARD) {
+		Jewel.PixelIncrement();
+	}
+}
+
+void JewelPixelComplete() {
+	Jewel.PixelReverse();
+	if (Jewel.PixelDirection == REVERSE) {
+		Jewel.PixelIncrement();
+	}
 }
